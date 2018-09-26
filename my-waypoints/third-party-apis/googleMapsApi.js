@@ -5,9 +5,9 @@ var API_KEY = 'AIzaSyAN6_UJyFJWL65Xf2xAIRSfmYJdbgkLrAM';
 function getRouteWithWaypoints(req_body,options) {
     var promise = new Promise(
         function (resolve, reject) {
-            var waypoints_param_string=process_waypoints_params(req_body.waypoints);
-            // 'https://maps.googleapis.com/maps/api/directions/json?origin='+req_body.origin+'&destination='+req_body.destination+'&waypoints='+waypoints_param_string+'&departure_time=now&key=AIzaSyAN6_UJyFJWL65Xf2xAIRSfmYJdbgkLrAM'
-            var request = https.get('https://maps.googleapis.com/maps/api/directions/json?origin='+req_body.origin+'&destination='+req_body.destination+'&waypoints='+waypoints_param_string+'&departure_time=now&mode='+req_body.travelMode+'&key='+API_KEY, function (response) {
+            //var waypoints_param_string=process_waypoints_params(req_body.waypoints);
+            // https://maps.googleapis.com/maps/api/directions/json?origin='+req_body.origin+'&destination='+req_body.destination+'&waypoints='+waypoints_param_string+'&departure_time=now&mode='+req_body.travelMode+'&key='+API_KEY
+            var request = https.get('https://maps.googleapis.com/maps/api/directions/json?origin='+req_body.origin+'&destination='+req_body.destination+'&departure_time=now&mode='+req_body.travelMode+'&key='+API_KEY, function (response) {
                 var body = '';
 
                 response.on('data', function (chunk) {
