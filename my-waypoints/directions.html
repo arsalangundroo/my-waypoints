@@ -9,6 +9,7 @@
        * element that contains the map. */
       #map {
         height: 100%;
+        
       }
       /* Optional: Makes the sample page fill the window. */
       html, body {
@@ -34,6 +35,22 @@
         height:10%;
         text-align: center;
       }
+      #weather-panel {
+        margin-top: 10px;
+        background-color: #FFEE77;
+        padding: 10px;
+        overflow: scroll;
+        height: 174px;
+      }
+      #right-panel {
+        margin: 20px;
+        border-width: 2px;
+        width: 20%;
+        height: 400px;
+        float: left;
+        text-align: left;
+        padding-top: 0;
+      }
     </style>
   </head>
   <body>
@@ -58,9 +75,11 @@
     </div>
     <div id="map"></div>
     &nbsp;
+        <div id="weather-panel"></div>
     <div id="warnings-panel"></div>
     <script>
       var waypoints_coordinates = [];
+      var waypoint_names=[];
       var flightPath;
       function initMap() {
         var markerArray = [];
@@ -141,8 +160,10 @@
                 waypoints:waypoints_coordinates
               },function(weatherInfo){
                   console.log(weatherInfo);
+                  displayWeatherInfo(waypoint_names,weatherInfo);
                   //display weather in UI-html.
             }); 
+            
           } else {
             window.alert('Directions request failed due to ' + status);
           }
@@ -154,7 +175,7 @@
         // Also attach the marker to an array so we can keep track of it and remove it
         // when calculating new routes.
         var myRoute = directionResult.routes[0].legs[0];
-        var waypoint_names=[];
+        waypoint_names=[];
         var waypoint_name_request;
         waypoints_coordinates = [];
         for (var i = 0; i < myRoute.steps.length; i++) {
@@ -169,6 +190,19 @@
         }
         console.log(waypoint_names);
       }
+      function displayWeatherInfo(waypoint_names,waypoints_weather){
+        var weatherPanel = document.getElementById('weather-panel');
+            weatherPanel.innerHTML = '';
+            // For each route, display summary information.
+            for (var i = 0; i < waypoint_names.length ; i++) {
+              var waypoint = i + 1;
+              weatherPanel.innerHTML += '<b>Waypoint: ' + waypoint +
+                  '</b><br>';
+                  weatherPanel.innerHTML += waypoint_names[i] + '--> Min: '+waypoints_weather[i].weatherInfo.temp_max+'  Max: '+waypoints_weather[i].weatherInfo.temp_min+ '<br>';
+            }
+      }
+
+
       // Referred from stackoverflow.
       function getDirectionWithWaypoints(request_body, callback){
           var xhr = new XMLHttpRequest();
