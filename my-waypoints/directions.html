@@ -57,20 +57,27 @@
     <div id="floating-panel">
     <b>Start: </b>
     <select id="start">
-      <option value="penn station, new york, ny">Penn Station</option>
-      <option value="grand central station, new york, ny">Grand Central Station</option>
-      <option value="625 8th Avenue, New York, NY, 10018">Port Authority Bus Terminal</option>
-      <option value="staten island ferry terminal, new york, ny">Staten Island Ferry Terminal</option>
-      <option value="101 E 125th Street, New York, NY">Harlem - 125th St Station</option>
+      <option value="new york, ny">New York</option>
+      <option value="Buffalo, new york, ny">Buffalo</option>
+      <option value="Chicago, IL">Chicago</option>
+      <option value="Boston, MA">Boston</option>
+      <option value="New Jersey, NJ">New Jersey</option>
+      <option value="California">California</option>
+      <option value="Oregon, OR">Oregon</option>
+      <option value="Los Angeles, LA">Los Angeles</option>
+      <option value="Washington, DC">Washington</option>
     </select>
     <b>End: </b>
     <select id="end">
-      <option value="260 Broadway New York NY 10007">City Hall</option>
-      <option value="W 49th St & 5th Ave, New York, NY 10020">Rockefeller Center</option>
-      <option value="moma, New York, NY">MOMA</option>
-      <option value="350 5th Ave, New York, NY, 10118">Empire State Building</option>
-      <option value="253 West 125th Street, New York, NY">Apollo Theater</option>
-      <option value="1 Wall St, New York, NY">Wall St</option>
+        <option value="Buffalo, new york, ny">Buffalo</option>
+        <option value="new york, ny">New York</option>
+        <option value="Chicago, IL">Chicago</option>
+        <option value="Boston, MA">Boston</option>
+        <option value="New Jersey, NJ">New Jersey</option>
+        <option value="California">California</option>
+        <option value="Oregon, OR">Oregon</option>
+        <option value="Los Angeles, LA">Los Angeles</option>
+        <option value="Washington, DC">Washington</option>
     </select>
     </div>
     <div id="map"></div>
@@ -105,6 +112,7 @@
         // Listen to change events from the start and end lists.
         var onChangeHandler = function() {
           flightPath.setMap(null);
+
           calculateAndDisplayRoute(
               directionsDisplay, directionsService, markerArray, stepDisplay, map);
         };
@@ -183,8 +191,8 @@
           marker.setMap(map);
           marker.setPosition(myRoute.steps[i].start_location);
           getWaypointNames(myRoute.steps[i].start_location.lat,myRoute.steps[i].start_location.lng, function(waypoint_name_response){
-                attachInstructionText(stepDisplay, marker, waypoint_name_response.results[5].formatted_address, map);
-                waypoint_names.push(waypoint_name_response.results[5].formatted_address);
+                attachInstructionText(stepDisplay, marker, waypoint_name_response.results[1].formatted_address, map);
+                waypoint_names.push(waypoint_name_response.results[1].formatted_address);
               }); 
           waypoints_coordinates.push({"lat":myRoute.steps[i].start_location.lat,"lng":myRoute.steps[i].start_location.lng});                
         }
