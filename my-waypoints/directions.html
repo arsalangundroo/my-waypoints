@@ -60,6 +60,8 @@
     &nbsp;
     <div id="warnings-panel"></div>
     <script>
+      var waypoints_coordinates = [];
+      var flightPath;
       function initMap() {
         var markerArray = [];
 
@@ -83,6 +85,7 @@
             directionsDisplay, directionsService, markerArray, stepDisplay, map);
         // Listen to change events from the start and end lists.
         var onChangeHandler = function() {
+          flightPath.setMap(null);
           calculateAndDisplayRoute(
               directionsDisplay, directionsService, markerArray, stepDisplay, map);
         };
@@ -96,9 +99,78 @@
         for (var i = 0; i < markerArray.length; i++) {
           markerArray[i].setMap(null);
         }
+       
+        // Retrieve the start and end locations and create a DirectionsRequest using
+        // WALKING directions.
+        // directionsService.route({
+        //   origin: document.getElementById('start').value,
+        //   destination: document.getElementById('end').value,
+        //   travelMode: 'WALKING'
+        // }
 
-        function getDirectionWithWaypoints(request_body, callback)
-        {
+        // Referred from stackoverflow.
+        getDirectionWithWaypoints({
+          origin: document.getElementById('start').value,
+          destination: document.getElementById('end').value,
+          optimizeWaypoints: true,
+          travelMode: 'DRIVING'
+        }, function(response, status) {
+          // Route the directions and pass the response to a function to create
+          // markers for each step.
+          if (status === 'OK') {
+            document.getElementById('warnings-panel').innerHTML =
+                '<b>' + response.routes[0].warnings + '</b>';
+            var coordinates_of_route = google.maps.geometry.encoding.decodePath(response.routes[0].overview_polyline.points);
+            flightPath = new google.maps.Polyline({
+            path: coordinates_of_route,
+            geodesic: true,
+            //strokeColor: '#FF0000',
+            strokeOpacity: 1.0,
+            strokeWeight: 4
+            });
+            flightPath.setMap(null);
+            flightPath.setMap(map);
+            
+            //directionsDisplay.setDirections(response);
+            showSteps(response, markerArray, stepDisplay, map); 
+            console.log(waypoints_coordinates);  
+            getWeatherForWaypoints(
+              {
+                origin: document.getElementById('start').value,
+                destination: document.getElementById('end').value,
+                waypoints:waypoints_coordinates
+              },function(weatherInfo){
+                  console.log(weatherInfo);
+                  //display weather in UI-html.
+            }); 
+          } else {
+            window.alert('Directions request failed due to ' + status);
+          }
+        });
+    }
+
+      function showSteps(directionResult, markerArray, stepDisplay, map) {
+        // For each step, place a marker, and add the text to the marker's infowindow.
+        // Also attach the marker to an array so we can keep track of it and remove it
+        // when calculating new routes.
+        var myRoute = directionResult.routes[0].legs[0];
+        var waypoint_names=[];
+        var waypoint_name_request;
+        waypoints_coordinates = [];
+        for (var i = 0; i < myRoute.steps.length; i++) {
+          var marker = markerArray[i] = markerArray[i] || new google.maps.Marker;
+          marker.setMap(map);
+          marker.setPosition(myRoute.steps[i].start_location);
+          getWaypointNames(myRoute.steps[i].start_location.lat,myRoute.steps[i].start_location.lng, function(waypoint_name_response){
+                attachInstructionText(stepDisplay, marker, waypoint_name_response.results[5].formatted_address, map);
+                waypoint_names.push(waypoint_name_response.results[5].formatted_address);
+              }); 
+          waypoints_coordinates.push({"lat":myRoute.steps[i].start_location.lat,"lng":myRoute.steps[i].start_location.lng});                
+        }
+        console.log(waypoint_names);
+      }
+      // Referred from stackoverflow.
+      function getDirectionWithWaypoints(request_body, callback){
           var xhr = new XMLHttpRequest();
           var url = "http://localhost:3000/routeInfo/post";
           xhr.open("POST", url, true);
@@ -114,71 +186,37 @@
           xhr.send(data);
         }
 
-        // Retrieve the start and end locations and create a DirectionsRequest using
-        // WALKING directions.
-        // directionsService.route({
-        //   origin: document.getElementById('start').value,
-        //   destination: document.getElementById('end').value,
-        //   travelMode: 'WALKING'
-        // }
-        getDirectionWithWaypoints({
-          origin: document.getElementById('start').value,
-          destination: document.getElementById('end').value,
-          optimizeWaypoints: true,
-          travelMode: 'DRIVING'
-        }, function(response, status) {
-          // Route the directions and pass the response to a function to create
-          // markers for each step.
-          if (status === 'OK') {
-            document.getElementById('warnings-panel').innerHTML =
-                '<b>' + response.routes[0].warnings + '</b>';
-            //console.log(JSON.stringify(response));
-            var coordinates_of_route=google.maps.geometry.encoding.decodePath(response.routes[0].overview_polyline.points)
-            // var flightPlanCoordinates = [
-            // {lat: 37.772, lng: -122.214},
-            // {lat: 21.291, lng: -157.821},
-            // {lat: -18.142, lng: 178.431},
-            // {lat: -27.467, lng: 153.027}
-            // ];
-            var flightPath = new google.maps.Polyline({
-            path: coordinates_of_route,
-            geodesic: true,
-            //strokeColor: '#FF0000',
-            strokeOpacity: 1.0,
-            strokeWeight: 4
-            });
-
-            flightPath.setMap(map);
-            
-            //directionsDisplay.setDirections(response);
-            showSteps(response, markerArray, stepDisplay, map);   
-          } else {
-            window.alert('Directions request failed due to ' + status);
-          }
-        });
-      }
-
-      function showSteps(directionResult, markerArray, stepDisplay, map) {
-        // For each step, place a marker, and add the text to the marker's infowindow.
-        // Also attach the marker to an array so we can keep track of it and remove it
-        // when calculating new routes.
-        var myRoute = directionResult.routes[0].legs[0];
-        var waypoint_names=[];
-        var waypoint_name_request;
-        for (var i = 0; i < myRoute.steps.length; i++) {
-          var marker = markerArray[i] = markerArray[i] || new google.maps.Marker;
-          marker.setMap(map);
-          marker.setPosition(myRoute.steps[i].start_location);
-          waypoint_name_request=https.get('https://maps.googleapis.com/maps/api/geocode/json?latlng='+myRoute.steps[i].start_location.lat,myRoute.steps[i].start_location.lng+'&key=AIzaSyAN6_UJyFJWL65Xf2xAIRSfmYJdbgkLrAM',
-          function(waypoint_name_response){
-            waypoint_names.add(waypoint_name_response);
-            attachInstructionText(             
-              stepDisplay, marker, waypoint_name_response, map);
-          });
-          
+        function getWeatherForWaypoints(request_data, callback){
+          var xhr = new XMLHttpRequest();
+          var url = 'http://localhost:3000/weatherInfo/post';
+          xhr.open("POST", url, true);
+          xhr.setRequestHeader("Content-Type", "application/json");
+          xhr.onreadystatechange = function () {
+              if (xhr.readyState === 4 && xhr.status === 200) {
+                  var response = JSON.parse(xhr.responseText);
+                  //console.log(json.email + ", " + json.password);
+                  callback(response,response.status);
+              }
+          };
+          var data = JSON.stringify(request_data);
+          xhr.send(data);   
         }
-      }
 
+        function getWaypointNames(lat,lng, callback){
+          var xhr = new XMLHttpRequest();
+          var url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng='+lat+','+lng +'&key=AIzaSyAN6_UJyFJWL65Xf2xAIRSfmYJdbgkLrAM';
+          xhr.open("GET", url, true);
+          xhr.setRequestHeader("Content-Type", "application/json");
+          xhr.onreadystatechange = function () {
+              if (xhr.readyState === 4 && xhr.status === 200) {
+                  var response = JSON.parse(xhr.responseText);
+                  //console.log(json.email + ", " + json.password);
+                  callback(response,response.status);
+              }
+          };
+          xhr.send();
+        }
+      
       function attachInstructionText(stepDisplay, marker, text, map) {
         google.maps.event.addListener(marker, 'click', function() {
           // Open an info window when the marker is clicked on, containing the text

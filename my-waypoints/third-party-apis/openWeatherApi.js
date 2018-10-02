@@ -1,8 +1,8 @@
 var http = require('http');
 
-var API_KEY = '503576a6446d97d28664f2e42787f134';
+var API_KEY = 'e117f91bef75e8f02e515355e4818089';
 
-function getWeatherForCity(city_name) {
+function getWeatherForCity(waypoints) {
     var promise = new Promise(
         function (resolve, reject) {
             var request = http.get('http://api.openweathermap.org/data/2.5/forecast/daily?q=' + city_name + '&cnt=14&APPID=' + API_KEY, function (response) {
