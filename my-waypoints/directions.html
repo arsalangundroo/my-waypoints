@@ -112,7 +112,6 @@
         // Listen to change events from the start and end lists.
         var onChangeHandler = function() {
           flightPath.setMap(null);
-
           calculateAndDisplayRoute(
               directionsDisplay, directionsService, markerArray, stepDisplay, map);
         };
@@ -186,8 +185,10 @@
         waypoint_names=[];
         var waypoint_name_request;
         waypoints_coordinates = [];
-        for (var i = 0; i < myRoute.steps.length; i++) {
-          var marker = markerArray[i] = markerArray[i] || new google.maps.Marker;
+        var j=0;
+        for (var i = 0; i < myRoute.steps.length-1; i=i+5) {
+          var marker = markerArray[j] = markerArray[j] || new google.maps.Marker;
+          j+=1;
           marker.setMap(map);
           marker.setPosition(myRoute.steps[i].start_location);
           getWaypointNames(myRoute.steps[i].start_location.lat,myRoute.steps[i].start_location.lng, function(waypoint_name_response){
@@ -196,6 +197,14 @@
               }); 
           waypoints_coordinates.push({"lat":myRoute.steps[i].start_location.lat,"lng":myRoute.steps[i].start_location.lng});                
         }
+        var marker = markerArray[j] = markerArray[j] || new google.maps.Marker;
+          marker.setMap(map);
+          marker.setPosition(myRoute.steps[myRoute.steps.length-1].start_location);
+          getWaypointNames(myRoute.steps[myRoute.steps.length-1].start_location.lat,myRoute.steps[myRoute.steps.length-1].start_location.lng, function(waypoint_name_response){
+                attachInstructionText(stepDisplay, marker, waypoint_name_response.results[1].formatted_address, map);
+                waypoint_names.push(waypoint_name_response.results[1].formatted_address);
+              }); 
+          waypoints_coordinates.push({"lat":myRoute.steps[myRoute.steps.length-1].start_location.lat,"lng":myRoute.steps[myRoute.steps.length-1].start_location.lng});
         console.log(waypoint_names);
       }
       function displayWeatherInfo(waypoint_names,waypoints_weather){
@@ -247,7 +256,7 @@
         function getWaypointNames(lat,lng, callback){
           var xhr = new XMLHttpRequest();
           var url = 'https://maps.googleapis.com/maps/api/geocode/json?latlng='+lat+','+lng +'&key=AIzaSyAN6_UJyFJWL65Xf2xAIRSfmYJdbgkLrAM';
-          xhr.open("GET", url, true);
+          xhr.open("GET", url, false);
           xhr.setRequestHeader("Content-Type", "application/json");
           xhr.onreadystatechange = function () {
               if (xhr.readyState === 4 && xhr.status === 200) {
